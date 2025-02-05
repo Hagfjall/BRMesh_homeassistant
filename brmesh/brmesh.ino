@@ -4,7 +4,8 @@
 #include "BLEBeacon.h"
 #include <WiFi.h>
 #include <ArduinoHA.h>
-
+#include <String>
+#include <cstdio>
 WiFiClient client;
 HADevice device("BRMesh");
 HAMqtt mqtt(client, device);
@@ -16,17 +17,17 @@ HAMqtt mqtt(client, device);
 //CONFIGURATION
 //////////////////////////////////////////////////////
 //IP Address of your MQTT Broker (probably your Home Assistant host)
-#define MQTT_BROKER_ADDR IPAddress(192,168,0,100)
+#define MQTT_BROKER_ADDR IPAddress(192,168,11,15)
 //Your MQTT UserName
-#define MQTT_BROKER_USER "User123"
+#define MQTT_BROKER_USER "THAUSER"
 //Your MQTT Password
-#define MQTT_BROKER_PASS "password1234"
+#define MQTT_BROKER_PASS "THAPASSWORD"
 //Your WiFi SSID
-#define WIFI_SSID "MyWifi"
+#define WIFI_SSID "WIFINAME"
 //Your Wifi Password
-#define WIFI_PASS "wifipassword"
-
-const uint8_t my_key[] = { 0x38, 0x35, 0x31, 0x33 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
+#define WIFI_PASS "WFIFIPASSWORD"
+# 33383336
+const uint8_t my_key[] = { 0x33, 0x38, 0x33, 0x36 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
 const int redundancy = 5;  // Repeats sending each command to the lights this many times; BLE broadcasting was flakey  
 
 // LIGHT DEFINITION
@@ -35,18 +36,23 @@ const int redundancy = 5;  // Repeats sending each command to the lights this ma
 //    If you want to adda Group the name must contan "Group"
 //    Add the corresponding id in mylightids
 
-const int numLights = 5;
+const int numLights = 1;
 HALight mylights[numLights] = {
   //add one line for each light.
-  HALight("1", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
-  HALight("2", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
-  HALight("3", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
-  HALight("4", HALight::BrightnessFeature | HALight::RGBFeature),
-  HALight("5", HALight::BrightnessFeature | HALight::ColorTemperatureFeature)
+  HALight("1", HALight::BrightnessFeature | HALight::RGBFeature)
+//HALight("2", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
+//HALight("3", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
+//HALight("4", HALight::BrightnessFeature | HALight::RGBFeature),
+//HALight("5", HALight::BrightnessFeature | HALight::ColorTemperatureFeature)
 };
 
-String mylightnames[numLights] = {"WC", "Conference1", "Conference2", "Conference3", "ConferenceGroup"};
-uint8_t mylightids[numLights] = {1,2,3,4,0xc3};
+String mylightnames[numLights] = {"Bed"
+
+//, "Conference1", "Conference2", "Conference3", "ConferenceGroup"
+};
+uint8_t mylightids[numLights] = {1
+//,2,3,4,0xc3
+};
 
 
 
@@ -58,51 +64,6 @@ BLEAdvertising *pAdvertising;   // BLE Advertisement type
 #define BEACON_UUID "87b99b2c-90fd-11e9-bc42-526af7764f64" // UUID 1 128-Bit (may use linux tool uuidgen or random numbers via https://www.uuidgenerator.net/)
 
 const uint8_t default_key[] = { 0x5e, 0x36, 0x7b, 0xc4 };
-
-void setup() {
-  //BLE STUFF
-  Serial.begin(115200);
-  Serial.printf("start ESP32 DEVICEID - %llX\n", ESP.getEfuseMac());
-
-  // Create the BLE Device
-  BLEDevice::init("ESP32 as iBeacon");
-
-  pAdvertising = BLEDevice::getAdvertising();
-  BLEDevice::startAdvertising();
-
-  //HOME ASSISTANT MQTT STUFF
-  // you don't need to verify return status
-  device.setName("BRMesh");
-  device.setManufacturer("BRMesh");
-  device.setModel("BRMesh");
-
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  while (WiFi.status() != WL_CONNECTED) {
-      delay(500); // waiting for the connection
-      Serial.print("."); // Print dots to indicate waiting
-  }
-  Serial.println("\nConnected to WiFi.");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-
-  for (int i=0; i<numLights; i++) 
-  {
-    mylights[i].setName(mylightnames[i].c_str());
-    mylights[i].onStateCommand(onStateCommand);
-    mylights[i].onBrightnessCommand(onBrightnessCommand); // optional
-    mylights[i].onColorTemperatureCommand(onColorTemperatureCommand); // optional
-    mylights[i].onRGBColorCommand(onRGBColorCommand); // optional
-    mylights[i].setBrightnessScale(127);
-  }
-  
-  Serial.println("Starting MQTT");
-  mqtt.begin(MQTT_BROKER_ADDR, 1883, MQTT_BROKER_USER, MQTT_BROKER_PASS);
-}
-
-void loop() 
-{
-    mqtt.loop();
-}
 
 uint8_t get_id(String x){
   for(uint8_t r = 0; r <= numLights;r++)
@@ -380,23 +341,13 @@ void send(uint8_t* data, uint8_t dataLength)
 
 //    uint8_t data[] = { 0x72, 0x00, 0xff, 0xff, 0x1d, 0xff };
 //    single_control(my_key, data);
-
-void onStateCommand(bool state, HALight* sender) {
-  uint8_t brightness = sender->getCurrentBrightness();
-  if (state) {
-    if (brightness == 0)
-      brightness = 0x7F;
-    onBrightnessCommand(brightness,sender);
-  } else {
-    onBrightnessCommand(0,sender);
-  }
-}
-
 void onBrightnessCommand(uint8_t brightness, HALight* sender) {
   uint8_t g = 0;
   Serial.print("Light:");
   Serial.println(sender->getName());
-  if (brightness > 127) brightness = 127;
+  if (brightness > 127){
+    brightness = 127;
+  }
   Serial.print("Brightness: ");
   Serial.println(brightness);
   
@@ -431,7 +382,9 @@ void onColorTemperatureCommand(uint16_t temperature, HALight* sender) {
   Serial.println(temperature);
   uint8_t brightness = sender->getCurrentBrightness();
   if (brightness < 2)
+  {
     brightness = 127;
+  }
 
   if (temperature < 153) {
     a = 0xff;
@@ -492,4 +445,62 @@ void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
   
   single_control(my_key, data);
   sender->setRGBColor(color); // report color back to the Home Assistant
+}
+
+
+void onStateCommand(bool state, HALight* sender) {
+  uint8_t brightness = sender->getCurrentBrightness();
+  if (state) {
+    if (brightness == 0)
+      brightness = 0x7F;
+    onBrightnessCommand(brightness,sender);
+  } else {
+    onBrightnessCommand(0,sender);
+  }
+}
+
+void setup() {
+  //BLE STUFF
+  Serial.begin(115200);
+  Serial.print("Starting...");
+  Serial.printf("start ESP32 DEVICEID - %llX\n", ESP.getEfuseMac());
+
+  // Create the BLE Device
+  BLEDevice::init("ESP32 as iBeacon");
+
+  pAdvertising = BLEDevice::getAdvertising();
+  BLEDevice::startAdvertising();
+
+  //HOME ASSISTANT MQTT STUFF
+  // you don't need to verify return status
+  device.setName("BRMesh");
+  device.setManufacturer("BRMesh");
+  device.setModel("BRMesh");
+
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+      delay(500); // waiting for the connection
+      Serial.print("."); // Print dots to indicate waiting
+  }
+  Serial.println("\nConnected to WiFi.");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  for (int i=0; i<numLights; i++) 
+  {
+    mylights[i].setName(mylightnames[i].c_str());
+    mylights[i].onStateCommand(onStateCommand);
+    mylights[i].onBrightnessCommand(onBrightnessCommand); // optional
+    mylights[i].onColorTemperatureCommand(onColorTemperatureCommand); // optional
+    mylights[i].onRGBColorCommand(onRGBColorCommand); // optional
+    mylights[i].setBrightnessScale(127);
+  }
+  
+  Serial.println("Starting MQTT");
+  mqtt.begin(MQTT_BROKER_ADDR, 1883, MQTT_BROKER_USER, MQTT_BROKER_PASS);
+}
+
+void loop() 
+{
+    mqtt.loop();
 }
