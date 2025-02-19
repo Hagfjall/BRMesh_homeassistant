@@ -1,4 +1,4 @@
-# Build notes from fredrik:
+# Build notes from Hagfjall:
 I used Arduino IDE 2.3.4 and downloaded the drivers (Silicon Labs CP210X) for m5atom lite. Install the Board `M5Atom`, some json-file i got somewhere.
 
 These are the settings in the IDE when pressing `Tools`
@@ -59,8 +59,8 @@ Several things must be modified in the sketch. You'll want to take a look at thi
 #define WIFI_PASS "wifipassword"
 
 const uint8_t my_key[] = { 0x38, 0x35, 0x31, 0x33 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
-
 const int redundancy = 5;  // Repeats sending each command to the lights this many times; BLE broadcasting was flakey
+uint8_t mylightids[numLights] = {5,4}; // Check the Light IDs from logcat, position [3]. Example of ID '5': getPayloadWithInnerRetry---> payload:220500000000000000000000,  key: 34353731
 ```
 
 ### Obtaining `my_key` from BRMesh

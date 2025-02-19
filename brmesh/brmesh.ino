@@ -26,8 +26,8 @@ HAMqtt mqtt(client, device);
 #define WIFI_SSID "WIFINAME"
 //Your Wifi Password
 #define WIFI_PASS "WFIFIPASSWORD"
-# 33383336
-const uint8_t my_key[] = { 0x33, 0x38, 0x33, 0x36 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
+// 34 35 37 31
+const uint8_t my_key[] = { 0x34, 0x35, 0x37, 0x31 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
 const int redundancy = 5;  // Repeats sending each command to the lights this many times; BLE broadcasting was flakey  
 
 // LIGHT DEFINITION
@@ -36,21 +36,22 @@ const int redundancy = 5;  // Repeats sending each command to the lights this ma
 //    If you want to adda Group the name must contan "Group"
 //    Add the corresponding id in mylightids
 
-const int numLights = 1;
+const int numLights = 2;
 HALight mylights[numLights] = {
   //add one line for each light.
-  HALight("1", HALight::BrightnessFeature | HALight::RGBFeature)
-//HALight("2", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
+  HALight("1", HALight::BrightnessFeature | HALight::RGBFeature),
+  HALight("2", HALight::BrightnessFeature | HALight::RGBFeature)
 //HALight("3", HALight::BrightnessFeature | HALight::ColorTemperatureFeature),
 //HALight("4", HALight::BrightnessFeature | HALight::RGBFeature),
 //HALight("5", HALight::BrightnessFeature | HALight::ColorTemperatureFeature)
 };
 
-String mylightnames[numLights] = {"Bed"
+String mylightnames[numLights] = {"Bed", "Bed2"
 
 //, "Conference1", "Conference2", "Conference3", "ConferenceGroup"
 };
-uint8_t mylightids[numLights] = {1
+// Check the Light IDs from logcat, position [3]. Example of ID '5': getPayloadWithInnerRetry---> payload:220500000000000000000000,  key: 34353731
+uint8_t mylightids[numLights] = {5,4
 //,2,3,4,0xc3
 };
 
@@ -61,7 +62,7 @@ uint8_t mylightids[numLights] = {1
 ////////////////////////////////////////////////
 
 BLEAdvertising *pAdvertising;   // BLE Advertisement type
-#define BEACON_UUID "87b99b2c-90fd-11e9-bc42-526af7764f64" // UUID 1 128-Bit (may use linux tool uuidgen or random numbers via https://www.uuidgenerator.net/)
+#define BEACON_UUID "a1885535-7e56-4c9c-ae19-796ce9864f3f" // UUID 1 128-Bit (may use linux tool uuidgen or random numbers via https://www.uuidgenerator.net/)
 
 const uint8_t default_key[] = { 0x5e, 0x36, 0x7b, 0xc4 };
 
