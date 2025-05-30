@@ -6,6 +6,8 @@
 #include <ArduinoHA.h>
 #include <String>
 #include <cstdio>
+#include "config.h"  // Include configuration file
+
 WiFiClient client;
 HADevice device("BRMesh");
 HAMqtt mqtt(client, device);
@@ -18,15 +20,17 @@ HAMqtt mqtt(client, device);
 //CONFIGURATION
 //////////////////////////////////////////////////////
 //IP Address of your MQTT Broker (probably your Home Assistant host)
-#define MQTT_BROKER_ADDR IPAddress(192,168,11,15)
-//Your MQTT UserName
-#define MQTT_BROKER_USER "THAUSER"
-//Your MQTT Password
-#define MQTT_BROKER_PASS "THAPASSWORD"
-//Your WiFi SSID
-#define WIFI_SSID "WIFINAME"
-//Your Wifi Password
-#define WIFI_PASS "WFIFIPASSWORD"
+#ifndef CONFIG_H
+  #define MQTT_BROKER_ADDR IPAddress(192,168,11,15)
+  //Your MQTT UserName
+  #define MQTT_BROKER_USER "THAUSER"
+  //Your MQTT Password
+  #define MQTT_BROKER_PASS "THAPASSWORD"
+  //Your WiFi SSID
+  #define WIFI_SSID "WIFINAME"
+  //Your Wifi Password
+  #define WIFI_PASS "WFIFIPASSWORD"
+#endif
 // 34 35 37 31
 const uint8_t my_key[] = { 0x34, 0x35, 0x37, 0x31 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
 const int redundancy = 5;  // Repeats sending each command to the lights this many times; BLE broadcasting was flakey  
