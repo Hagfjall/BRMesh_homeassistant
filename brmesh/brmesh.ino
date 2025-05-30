@@ -12,6 +12,7 @@ HAMqtt mqtt(client, device);
 
 // check logs of android device:
 // adb logcat | grep getPayloadWithInner
+// adb.exe logcat | select-string getPayloadWithInner
 
 //////////////////////////////////////////////////////
 //CONFIGURATION
@@ -29,7 +30,12 @@ HAMqtt mqtt(client, device);
 // 34 35 37 31
 const uint8_t my_key[] = { 0x34, 0x35, 0x37, 0x31 }; //Unique key from BRMesh app (found using USB debugging and adb logcat)
 const int redundancy = 5;  // Repeats sending each command to the lights this many times; BLE broadcasting was flakey  
-
+//                                                                            OFF 
+// 05-30 11:40:25.510 17120 17120 I jyq_helper: getPayloadWithInnerRetry---> payload:432aa8000000000000000000,  key: 34353731
+// 05-30 11:40:25.510 17120 17120 I jyq_helper: getPayloadWithInnerRetry---> mSendCnt:87,  sSendSeq:153,  seq:153
+//                                                                            ON
+// 05-30 11:40:26.891 17120 17120 I jyq_helper: getPayloadWithInnerRetry---> payload:432aa8008000000000000000,  key: 34353731
+// 05-30 11:40:26.891 17120 17120 I jyq_helper: getPayloadWithInnerRetry---> mSendCnt:88,  sSendSeq:154,  seq:154
 // LIGHT DEFINITION
 //    Add/remove lights here:  (numLights, create an additional HALight object,
 //    and add to the list of light names.
