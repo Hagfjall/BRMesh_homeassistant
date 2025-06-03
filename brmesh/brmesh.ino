@@ -103,51 +103,28 @@ void dump(const uint8_t* data, int length) {
 }
 
 uint8_t package_ble_fastcon_body(int i, int i2, uint8_t sequence, uint8_t safe_key, int forward, const uint8_t* data, int length, const uint8_t* key, uint8_t*& payload) {
-  Serial.println("\n=== package_ble_fastcon_body Debug ===");
-  Serial.printf("Input parameters:\n");
-  Serial.printf("i: %d\n", i);
-  Serial.printf("i2: %d\n", i2);
-  Serial.printf("sequence: %d\n", sequence);
-  Serial.printf("safe_key: 0x%02X\n", safe_key);
-  Serial.printf("forward: %d\n", forward);
-  Serial.printf("data length: %d\n", length);
-
   if (length > 12) {
-    Serial.println("Error: data too long");
     payload = nullptr;
     return 0;
   }
 
   uint8_t payloadLength = 4 + 12;
-  Serial.printf("Allocating payload of length: %d\n", payloadLength);
   payload = (uint8_t*)malloc(payloadLength);
   if (payload == nullptr) {
-    Serial.println("Error: Failed to allocate memory in package_ble_fastcon_body");
     return 0;
   }
 
   // Initialize the entire payload to zero
   memset(payload, 0, payloadLength);
-  Serial.println("Payload initialized to zero");
 
   payload[0] = (i2 & 0b1111) << 0 | (i & 0b111) << 4 | (forward & 0xff) << 7;
   payload[1] = sequence & 0xff;
   payload[2] = safe_key;
   payload[3] = 0;  // checksum
 
-  Serial.println("Initial payload header:");
-  Serial.printf("payload[0]: 0x%02X\n", payload[0]);
-  Serial.printf("payload[1]: 0x%02X\n", payload[1]);
-  Serial.printf("payload[2]: 0x%02X\n", payload[2]);
-  Serial.printf("payload[3]: 0x%02X\n", payload[3]);
-
   // Copy data if it exists
   if (data != nullptr && length > 0) {
-    Serial.println("Copying data to payload:");
     memcpy(payload + 4, data, length);
-    for (int j = 0; j < length; j++) {
-      Serial.printf("payload[%d]: 0x%02X\n", j + 4, payload[j + 4]);
-    }
   }
 
   uint8_t checksum = 0;
@@ -156,27 +133,16 @@ uint8_t package_ble_fastcon_body(int i, int i2, uint8_t sequence, uint8_t safe_k
     checksum = (checksum + payload[j]) & 0xff;
   }
   payload[3] = checksum;
-  Serial.printf("Calculated checksum: 0x%02X\n", checksum);
 
-  Serial.println("Applying default key XOR:");
+  // Apply default key XOR
   for (int j = 0; j < 4; j++) {
-    Serial.printf("Before XOR payload[%d]: 0x%02X, default_key[%d]: 0x%02X\n",
-                  j, payload[j], j & 3, default_key[j & 3]);
     payload[j] = default_key[j & 3] ^ payload[j];
-    Serial.printf("After XOR payload[%d]: 0x%02X\n", j, payload[j]);
   }
 
-  Serial.println("Applying my_key XOR:");
+  // Apply my_key XOR
   for (int j = 0; j < 12; j++) {
-    Serial.printf("Before XOR payload[%d]: 0x%02X, my_key[%d]: 0x%02X\n",
-                  j + 4, payload[j + 4], j & 3, my_key[j & 3]);
     payload[4 + j] = my_key[j & 3] ^ payload[4 + j];
-    Serial.printf("After XOR payload[%d]: 0x%02X\n", j + 4, payload[j + 4]);
   }
-
-  for (int j = 0; j < payloadLength; j++) {
-  }
-  Serial.println("=== End package_ble_fastcon_body Debug ===\n");
 
   return payloadLength;
 }
@@ -204,8 +170,6 @@ uint8_t get_payload_with_inner_retry(int i, const uint8_t* data, int length, int
 }
 
 void whiteningInit(uint8_t val, uint8_t* ctx) {
-  Serial.println("\n=== whiteningInit Debug ===");
-  Serial.printf("val: 0x%02X\n", val);
   ctx[0] = 1;
   ctx[1] = (val >> 5) & 1;
   ctx[2] = (val >> 4) & 1;
@@ -213,20 +177,9 @@ void whiteningInit(uint8_t val, uint8_t* ctx) {
   ctx[4] = (val >> 2) & 1;
   ctx[5] = (val >> 1) & 1;
   ctx[6] = val & 1;
-  Serial.print("ctx: ");
-  for (int i = 0; i < 7; i++) Serial.printf("%d ", ctx[i]);
-  Serial.println("");
-  Serial.println("=== End whiteningInit Debug ===\n");
 }
 
 void whiteningEncode(const uint8_t* data, int len, uint8_t* ctx, uint8_t* result) {
-  Serial.println("\n=== whiteningEncode Debug ===");
-  Serial.print("Input data: ");
-  for (int i = 0; i < len; i++) Serial.printf("0x%02X ", data[i]);
-  Serial.println("");
-  Serial.print("Initial ctx: ");
-  for (int i = 0; i < 7; i++) Serial.printf("%d ", ctx[i]);
-  Serial.println("");
   memcpy(result, data, len);
   for (int i = 0; i < len; i++) {
     int varC = ctx[3];
@@ -239,7 +192,6 @@ void whiteningEncode(const uint8_t* data, int len, uint8_t* ctx, uint8_t* result
     int var0 = _var ^ ctx[0];
 
     int c = result[i];
-    Serial.printf("Before whitening result[%d]: 0x%02X\n", i, c);
     result[i] = ((c & 0x80) ^ ((var8 ^ var18) << 7))
                 + ((c & 0x40) ^ (var0 << 6))
                 + ((c & 0x20) ^ (var4 << 5))
@@ -248,7 +200,6 @@ void whiteningEncode(const uint8_t* data, int len, uint8_t* ctx, uint8_t* result
                 + ((c & 0x04) ^ (var10 << 2))
                 + ((c & 0x02) ^ (var14 << 1))
                 + ((c & 0x01) ^ (var18 << 0));
-    Serial.printf("After whitening result[%d]: 0x%02X\n", i, result[i]);
 
     ctx[2] = var4;
     ctx[3] = var8;
@@ -257,14 +208,7 @@ void whiteningEncode(const uint8_t* data, int len, uint8_t* ctx, uint8_t* result
     ctx[6] = var4 ^ var14;
     ctx[0] = var8 ^ var18;
     ctx[1] = var0;
-    Serial.print("Updated ctx: ");
-    for (int k = 0; k < 7; k++) Serial.printf("%d ", ctx[k]);
-    Serial.println("");
   }
-  Serial.print("Final result: ");
-  for (int i = 0; i < len; i++) Serial.printf("0x%02X ", result[i]);
-  Serial.println("");
-  Serial.println("=== End whiteningEncode Debug ===\n");
 }
 
 uint8_t reverse_8(uint8_t d) {
@@ -323,19 +267,9 @@ uint16_t crc16(const uint8_t* addr, const uint8_t* data, uint8_t dataLength) {
 
 
 uint8_t get_rf_payload(const uint8_t* addr, const uint8_t* data, uint8_t dataLength, uint8_t*& rfPayload) {
-  Serial.println("\n=== get_rf_payload Debug ===");
-  Serial.print("addr: ");
-  for (int i = 0; i < addrLength; i++) Serial.printf("0x%02X ", addr[i]);
-  Serial.println("");
-  Serial.print("data: ");
-  for (int i = 0; i < dataLength; i++) Serial.printf("0x%02X ", data[i]);
-  Serial.println("");
-  Serial.printf("dataLength: %d\n", dataLength);
-
   uint8_t data_offset = 0x12;
   uint8_t inverse_offset = 0x0f;
   uint8_t result_data_size = data_offset + addrLength + dataLength + 2;
-  Serial.printf("result_data_size: %d\n", result_data_size);
   uint8_t* resultbuf = (uint8_t*)malloc(result_data_size);
   memset(resultbuf, 0, result_data_size);
 
@@ -343,35 +277,22 @@ uint8_t get_rf_payload(const uint8_t* addr, const uint8_t* data, uint8_t dataLen
   resultbuf[0x10] = 0x0f;
   resultbuf[0x11] = 0x55;
 
-  Serial.println("Copying addr to resultbuf:");
   for (uint8_t j = 0; j < addrLength; j++) {
     resultbuf[data_offset + addrLength - j - 1] = addr[j];
-    Serial.printf("resultbuf[%d]: 0x%02X\n", data_offset + addrLength - j - 1, resultbuf[data_offset + addrLength - j - 1]);
   }
 
-  Serial.println("Copying data to resultbuf:");
   for (int j = 0; j < dataLength; j++) {
     resultbuf[data_offset + addrLength + j] = data[j];
-    Serial.printf("resultbuf[%d]: 0x%02X\n", data_offset + addrLength + j, resultbuf[data_offset + addrLength + j]);
   }
 
-  Serial.println("Reversing bytes in resultbuf:");
   for (int i = inverse_offset; i < inverse_offset + addrLength + 3; i++) {
-    uint8_t before = resultbuf[i];
     resultbuf[i] = reverse_8(resultbuf[i]);
-    Serial.printf("resultbuf[%d]: 0x%02X -> 0x%02X\n", i, before, resultbuf[i]);
   }
 
   int crc = crc16(addr, data, dataLength);
-  Serial.printf("CRC16: 0x%04X\n", crc);
   resultbuf[result_data_size - 2] = crc & 0xff;
   resultbuf[result_data_size - 1] = (crc >> 8) & 0xff;
-  Serial.printf("resultbuf[%d] (CRC low): 0x%02X\n", result_data_size - 2, resultbuf[result_data_size - 2]);
-  Serial.printf("resultbuf[%d] (CRC high): 0x%02X\n", result_data_size - 1, resultbuf[result_data_size - 1]);
   rfPayload = resultbuf;
-  Serial.println("Final rfPayload:");
-  for (int i = 0; i < result_data_size; i++) Serial.printf("rfPayload[%d]: 0x%02X\n", i, rfPayload[i]);
-  Serial.println("=== End get_rf_payload Debug ===\n");
   return result_data_size;
 }
 
