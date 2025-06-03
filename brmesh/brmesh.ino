@@ -58,7 +58,7 @@ HALight mylights[numLights] = {
 
 String mylightnames[numLights] = { "Bed1", "Bed2", "Bed3", "Bed4" };
 // Check the Light IDs from logcat, position [3]. Example of ID '5': getPayloadWithInnerRetry---> payload:220500000000000000000000,  key: 34353731
-uint8_t mylightids[numLights] = { 0, 1, 2, 3 };
+uint8_t mylightids[numLights] = { 1, 2, 3, 4 };
 
 ////////////////////////////////////////////////
 // You probably don't need to modify below here
