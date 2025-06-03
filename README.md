@@ -1,5 +1,6 @@
 # Build notes from Hagfjall:
-I used Arduino IDE 2.3.4 and downloaded the drivers (Silicon Labs CP210X) for m5atom lite. Install the Board `M5Atom`, some json-file i got somewhere.
+I used Arduino IDE 2.3.4 and downloaded the drivers (Silicon Labs CP210X) for m5atom lite. 
+Install the Board `M5Stack`, version 2.1.4.
 
 These are the settings in the IDE when pressing `Tools`
 ```text
@@ -16,8 +17,6 @@ Arduino Runs On: "Core 1"
 Partition Scheme: "Huge APP (3MB No OTA/1MB SPIFFS)"
 Upload Speed: "1500000"
 ```
-
-
 
 # BRMesh Home Assistant
 Here in Canada, it seems like it's impossible to get outdoor floodlights that are compatible with Home Assistant.  All the available options on Amazon employ the "BRMesh" app. The app admittedly works well, but of course I want Home Assistant integration, which this completely offline app does not support. The lights themselves are sold under several brand names, such as MELPO, SOLLA, Neliwo, but they seem to all be the same light. 
